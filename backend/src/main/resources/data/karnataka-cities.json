@@ -1,0 +1,18 @@
+[
+  { "name": "Ballari", "latitude": 15.1394, "longitude": 76.9214 },
+  { "name": "Belagavi", "latitude": 15.8497, "longitude": 74.4977 },
+  { "name": "Bengaluru", "latitude": 12.9716, "longitude": 77.5946 },
+  { "name": "Bidar", "latitude": 17.9104, "longitude": 77.5199 },
+  { "name": "Davanagere", "latitude": 14.4644, "longitude": 75.9218 },
+  { "name": "Dharwad", "latitude": 15.4589, "longitude": 75.0078 },
+  { "name": "Gadag", "latitude": 15.4315, "longitude": 75.6355 },
+  { "name": "Hassan", "latitude": 13.0072, "longitude": 76.0962 },
+  { "name": "Hubli", "latitude": 15.3647, "longitude": 75.124 },
+  { "name": "Kalaburagi", "latitude": 17.3297, "longitude": 76.8343 },
+  { "name": "Mangaluru", "latitude": 12.9141, "longitude": 74.856 },
+  { "name": "Mysuru", "latitude": 12.2958, "longitude": 76.6394 },
+  { "name": "Shivamogga", "latitude": 13.9299, "longitude": 75.5681 },
+  { "name": "Tumakuru", "latitude": 13.3409, "longitude": 77.101 },
+  { "name": "Udupi", "latitude": 13.3409, "longitude": 74.7421 },
+  { "name": "Vijayapura", "latitude": 16.8302, "longitude": 75.71 }
+]

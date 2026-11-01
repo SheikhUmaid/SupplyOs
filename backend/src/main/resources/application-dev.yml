@@ -1,0 +1,9 @@
+app:
+  security:
+    secure-cookie: false # Local development runs over plain HTTP.
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

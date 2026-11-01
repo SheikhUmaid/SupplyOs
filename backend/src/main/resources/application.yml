@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: supplychain-backend
+  config:
+    # Local secrets. Real environment variables take precedence over this file.
+    import: optional:file:.env[.properties]
+  profiles:
+    default: dev
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/supplychain}
+    username: ${DB_USERNAME:supplychain}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # Flyway owns the schema. Startup fails if entities and tables disagree.
+    properties:
+      hibernate.jdbc.time_zone: UTC
+
+server:
+  port: ${SERVER_PORT:8081}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiry: PT8H
+  security:
+    secure-cookie: true
+  # Decision engine settings. Weights must add up to 1. Lower scores win.
+  allocation:
+    weights:
+      distance: 0.40
+      cost: 0.30
+      inventory: 0.20
+      priority: 0.10
+    road-factor: 1.25 # Straight-line km to estimated road km.
+    speed-kmh: 45 # Average speed, used for the delivery time estimate.
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

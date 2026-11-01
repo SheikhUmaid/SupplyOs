@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* Design tokens. Status colours are reserved for status and always appear with a text label. */
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-canvas: #f3f5f8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8f9fb;
+  --color-line: #dde2e9;
+  --color-line-strong: #c4ccd6;
+
+  --color-ink: #152233;
+  --color-ink-muted: #566375;
+  --color-ink-subtle: #6b7685;
+
+  --color-navy-950: #0a1626;
+  --color-navy-900: #0e1c30;
+  --color-navy-800: #16283f;
+  --color-navy-700: #213650;
+  --color-navy-200: #b4c0d0;
+
+  --color-primary: #1a5fc9;
+  --color-primary-hover: #154fa8;
+  --color-primary-subtle: #e8f0fc;
+
+  --color-success: #1a7f4e;
+  --color-success-subtle: #e5f4ec;
+  --color-warning: #8f5a00;
+  --color-warning-subtle: #fcf2dd;
+  --color-danger: #bf2e2e;
+  --color-danger-hover: #a12525;
+  --color-danger-subtle: #fbeaea;
+
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+
+  --shadow-overlay: 0 8px 28px rgb(14 28 48 / 0.18);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
