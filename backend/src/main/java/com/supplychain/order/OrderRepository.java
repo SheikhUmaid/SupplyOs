@@ -1,6 +1,9 @@
 package com.supplychain.order;
 
+import com.supplychain.common.WarehouseCount;
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +15,13 @@ import org.springframework.data.repository.query.Param;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countBySelectedWarehouseIdAndStatusNot(long warehouseId, OrderStatus status);
+
+    @Query("""
+            SELECT new com.supplychain.common.WarehouseCount(o.selectedWarehouse.id, COUNT(o))
+            FROM Order o
+            WHERE o.status IN :statuses AND o.selectedWarehouse IS NOT NULL
+            GROUP BY o.selectedWarehouse.id""")
+    List<WarehouseCount> countByWarehouse(@Param("statuses") Collection<OrderStatus> statuses);
 
     /** Every change to an existing order takes this lock first, then any stock rows. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

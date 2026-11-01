@@ -6,6 +6,7 @@ import com.supplychain.allocation.location.LocationService.City;
 import com.supplychain.common.PageParams;
 import com.supplychain.common.PageResponse;
 import com.supplychain.common.SearchTerm;
+import com.supplychain.dispatch.DispatchService;
 import com.supplychain.exception.ApiException;
 import com.supplychain.inventory.Inventory;
 import com.supplychain.inventory.InventoryService;
@@ -40,6 +41,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -61,6 +63,7 @@ public class OrderService {
     private final LocationService locations;
     private final AllocationService allocationService;
     private final InventoryService inventoryService;
+    private final DispatchService dispatchService;
     private final TransactionTemplate transaction;
     private final Clock clock;
 
@@ -72,6 +75,7 @@ public class OrderService {
             LocationService locations,
             AllocationService allocationService,
             InventoryService inventoryService,
+            DispatchService dispatchService,
             TransactionTemplate transaction,
             Clock clock) {
         this.orders = orders;
@@ -81,6 +85,7 @@ public class OrderService {
         this.locations = locations;
         this.allocationService = allocationService;
         this.inventoryService = inventoryService;
+        this.dispatchService = dispatchService;
         this.transaction = transaction;
         this.clock = clock;
     }
@@ -182,6 +187,12 @@ public class OrderService {
         return toDetail(visibleTo(viewer, orders.findWithPartiesById(id)));
     }
 
+    /** For use inside a transaction: the order with its customer and warehouse, if this viewer may see it. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Order requireVisible(long id, AuthenticatedUser viewer) {
+        return visibleTo(viewer, orders.findWithPartiesById(id));
+    }
+
     /** Someone else's order looks the same as a missing one, so order IDs can't be probed. */
     private static Order visibleTo(AuthenticatedUser viewer, Optional<Order> order) {
         return order.filter(found ->
@@ -214,6 +225,7 @@ public class OrderService {
         Instant now = clock.instant();
         if (order.getSelectedWarehouse() != null) {
             releaseStock(order, now);
+            dispatchService.cancelFor(order, viewer.id(), now);
         }
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelledAt(now);

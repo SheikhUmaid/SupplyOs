@@ -44,6 +44,19 @@ export type AllocationSettings = Schemas["AllocationSettingsResponse"];
 export type OrderStatus = OrderDetail["status"];
 export type PaymentStatus = OrderDetail["paymentStatus"];
 
-// Replaced by a generated type when the dispatch API arrives.
-export type ShipmentStatus =
-  "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+export type Dispatch = Schemas["DispatchResponse"];
+export type ShipmentStatus = Dispatch["status"];
+export type Tracking = Schemas["TrackingResponse"];
+
+export type Network = Schemas["NetworkResponse"];
+export type NetworkWarehouse = Schemas["NetworkWarehouseResponse"];
+export type NetworkShipment = Schemas["NetworkShipmentResponse"];
+
+export type Dashboard = Schemas["DashboardResponse"];
+export type Alerts = Schemas["AlertsResponse"];
+export type OrderAnalytics = Schemas["OrderAnalyticsResponse"];
+export type WarehouseAnalytics = Schemas["WarehouseAnalyticsResponse"];
+export type WarehouseComparison = Schemas["WarehouseComparisonResponse"];
+export type InventoryAnalytics = Schemas["InventoryAnalyticsResponse"];
+export type DispatchAnalytics = Schemas["DispatchAnalyticsResponse"];
+export type LabelledCount = Schemas["LabelledCountResponse"];

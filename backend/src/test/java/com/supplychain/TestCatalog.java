@@ -10,6 +10,8 @@ import com.supplychain.product.ProductStatus;
 import com.supplychain.warehouse.Warehouse;
 import com.supplychain.warehouse.WarehouseRepository;
 import com.supplychain.warehouse.WarehouseStatus;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -23,6 +25,9 @@ public class TestCatalog {
     private final ProductRepository products;
     private final WarehouseRepository warehouses;
     private final InventoryRepository inventory;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public TestCatalog(
             CategoryRepository categories,
@@ -91,6 +96,11 @@ public class TestCatalog {
                 handlingHours,
                 status,
                 Instant.now()));
+    }
+
+    /** Makes the next read see rows changed directly through SQL rather than this test's cached copies. */
+    public void clearSession() {
+        entityManager.clear();
     }
 
     public Warehouse save(Warehouse warehouse) {

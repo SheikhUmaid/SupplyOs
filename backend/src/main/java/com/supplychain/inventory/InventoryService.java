@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryService {
 
+    public static final String OPENING_STOCK_NOTE = "Opening stock";
     private static final String RECORD_EXISTS = "This product already has a stock record in this warehouse.";
     private static final Map<String, String> SORTABLE = Map.of(
             "product", "product.name",
@@ -101,7 +102,7 @@ public class InventoryService {
                     record,
                     InventoryTransactionType.RESTOCK,
                     request.availableQuantity(),
-                    "Opening stock",
+                    OPENING_STOCK_NOTE,
                     actorId == null ? null : users.getReferenceById(actorId),
                     now);
         }
@@ -165,6 +166,15 @@ public class InventoryService {
             throw new IllegalStateException("Release exceeds reserved stock for inventory " + row.getId());
         }
         moveForOrder(row, order, InventoryTransactionType.RELEASE, quantity, -quantity, at);
+    }
+
+    /** `row` must already be locked. The goods have left, so the units stop being reserved. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void ship(Inventory row, Order order, int quantity, Instant at) {
+        if (row.getReservedQuantity() < quantity) {
+            throw new IllegalStateException("Shipment exceeds reserved stock for inventory " + row.getId());
+        }
+        moveForOrder(row, order, InventoryTransactionType.SHIP, 0, -quantity, at);
     }
 
     private void moveForOrder(

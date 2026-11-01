@@ -1,7 +1,7 @@
 # SupplyChain OS: Phase 0 Architecture Proposal
 
 Status: **approved 2026-11-01**, including all decisions in section 1.
-Inputs: `readme.md` (engineering spec) and `Tasks.md` (execution rules).
+Inputs: `SPECIFICATION.md` (engineering spec) and `Tasks.md` (execution rules).
 
 Section 1 lists the decisions that need your approval. Everything after it is the design those decisions produce.
 
@@ -373,7 +373,7 @@ Access: **Public**, **Auth** (any logged-in user), **Cust**, **Admin**.
 | `PATCH /dispatches/{id}/status` | Admin | **409** on an invalid transition. |
 | `GET /tracking/order/{orderId}` | Owner or Admin | Timeline. Admins get extra fields. |
 | `GET /tracking/dispatch/{dispatchId}` | Admin | |
-| `GET /analytics/dashboard`, `/orders`, `/warehouses`, `/inventory`, `/dispatches` | Admin | Live SQL aggregates; date-range filters. |
+| `GET /analytics/dashboard`, `/alerts`, `/orders`, `/warehouses`, `/inventory`, `/dispatches` | Admin | Live SQL aggregates; `days` period filter (1 to 366, Indian calendar days). |
 | ➕ `GET /visualization/network` | Admin | Warehouses, routes and shipment states for the map. |
 | ➕ `GET /settings/allocation` | Admin | Active weights (D6). |
 
@@ -564,7 +564,7 @@ Replays use **stored decisions**; nothing is recalculated in the browser. Marker
 
 ## 12. Seed data
 
-The seeder runs only under the `dev` profile, only on an empty database.
+The seeder runs only under the `dev` profile, only on an empty database, as one transaction. History also needs `SEED_CUSTOMER_PASSWORD` and an administrator; without them, only the catalogue is created.
 
 **History goes through the real services**, with an adjustable clock for past dates. Allocations, ledger rows and tracking in the 15+ historical orders are therefore genuine output, and the analytics are true to the data. A final set of recorded `ADJUSTMENT` rows then brings stock to the demo values, so the required scenario starts exactly as specified.
 

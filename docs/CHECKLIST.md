@@ -55,33 +55,40 @@ Mark an item complete only after its relevant tests have been run. The design is
 - [x] Allocation comparison screen, admin order list, settings page
 - [x] Engine tests pass
 - [x] Concurrency tests pass on real MySQL (the private temporary instance; see Phase 2)
-- [ ] **Approved by project owner**
+- [x] **Approved by project owner** (2026-11-01)
 
 ## Phase 6: Dispatch and tracking
-- [ ] Automatic dispatch creation, inside the order's transaction
-- [ ] Cancelling an order also cancels its dispatch
-- [ ] Status transitions, with invalid moves rejected
-- [ ] Stock leaves reserved on dispatch
-- [ ] Dispatch board
-- [ ] Customer timeline from real records
-- [ ] Warehouse drawer lists allocated orders and dispatch history (their APIs arrive in Phases 5 and 6)
-- [ ] Tests pass
+- [x] Automatic dispatch creation, inside the order's transaction
+- [x] Cancelling an order also cancels its dispatch
+- [x] Status transitions, with invalid moves rejected
+- [x] Stock leaves reserved on dispatch
+- [x] Dispatch board
+- [x] Customer timeline from real records, refreshing automatically
+- [x] Warehouse drawer lists allocated orders and dispatch history
+- [x] Migration gives orders confirmed before this phase their dispatch
+- [x] Tests pass on the project's `supplychain_test` database
+- [x] **Approved by project owner** (2026-11-01)
 
 ## Phase 7: Visualization
-- [ ] Map scene, projection, warehouse nodes, customer points
-- [ ] Routes and links from real data
-- [ ] Allocation replay from stored evaluations
-- [ ] Shipment markers driven by status, labelled as simulated
-- [ ] Reduced motion and cleanup verified
+- [x] Map scene, projection, warehouse nodes, customer points
+- [x] Routes and links from real data
+- [x] Allocation replay from stored evaluations
+- [x] Shipment markers driven by status, labelled as simulated
+- [x] Reduced motion and cleanup verified
+- [x] **Approved by project owner**
 
 ## Phase 8: Dashboard and analytics
-- [ ] 8 KPI cards and dashboard sections
-- [ ] Analytics pages using Recharts
-- [ ] Figures checked against direct SQL
+- [x] 8 KPI cards and dashboard sections
+- [x] Analytics pages using Recharts
+- [x] Figures checked against direct SQL
+- [x] Notifications show real pending and low-stock counts
+- [x] **Approved by project owner**
 
 ## Phase 9: Integration
-- [ ] Seed data: historical orders, 10 customer accounts, every shipment status (catalogue done in Phase 4)
-- [ ] 20-step demo from `Tasks.md` runs from a clean database
-- [ ] Database consistency verified (stock totals match the ledger)
-- [ ] All tests pass
-- [ ] Final README with setup and demo credentials
+- [x] Seed data: historical orders, 10 customer accounts, every shipment status (catalogue done in Phase 4)
+- [x] 20-step demo from `Tasks.md` runs from a clean database
+- [x] Database consistency verified (stock totals match the ledger)
+- [x] All tests pass
+- [x] Final README with setup and demo credentials
+- [ ] Demo database reset and seeded (needs the backend stopped)
+- [ ] **Approved by project owner**

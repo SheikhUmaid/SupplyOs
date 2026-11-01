@@ -1,15 +1,15 @@
 "use client";
 
-import { Bell, ChevronRight, Menu, Search, UserRound } from "lucide-react";
+import { ChevronRight, Menu, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useState, type FormEvent } from "react";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { EmptyState } from "@/components/ui/Feedback";
 import { useLogout } from "@/hooks/useLogout";
 import { resolveAdminPage, resolveAdminSearchHref } from "@/lib/navigation";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useUiStore } from "@/stores/ui/uiStore";
+import { NotificationsMenu } from "./NotificationsMenu";
 
 const ICON_BUTTON =
   "flex size-9 items-center justify-center rounded-md text-ink-muted hover:bg-canvas hover:text-ink";
@@ -76,13 +76,7 @@ export function AdminTopbar() {
         />
       </form>
 
-      <Dropdown
-        label="Notifications"
-        triggerClassName={ICON_BUTTON}
-        trigger={<Bell aria-hidden className="size-4.5" strokeWidth={1.75} />}
-      >
-        {() => <EmptyState title="No notifications" />}
-      </Dropdown>
+      <NotificationsMenu triggerClassName={ICON_BUTTON} />
 
       <Dropdown
         label="Administrator menu"

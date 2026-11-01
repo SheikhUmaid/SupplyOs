@@ -52,6 +52,9 @@ const allocation = (evaluations: AllocationEvaluation[]): Allocation => ({
   weights: { distance: 0.4, cost: 0.3, inventory: 0.2, priority: 0.1 },
   explanation: "Hubli Warehouse was selected.",
   allocatedAt: "2026-03-01T10:00:00Z",
+  deliveryCity: "Davanagere",
+  deliveryLatitude: 14.46,
+  deliveryLongitude: 75.92,
   evaluations,
 });
 

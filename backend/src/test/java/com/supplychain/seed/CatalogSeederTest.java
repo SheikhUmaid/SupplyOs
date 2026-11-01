@@ -2,19 +2,22 @@ package com.supplychain.seed;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.supplychain.IntegrationTest;
 import com.supplychain.category.CategoryRepository;
-import com.supplychain.inventory.InventoryService;
 import com.supplychain.product.ProductRepository;
 import com.supplychain.warehouse.WarehouseRepository;
-import java.time.Clock;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-@IntegrationTest
+/** The catalogue alone: with no customer password configured, no history is created. */
+@SpringBootTest(properties = {"app.seed.enabled=false", "SEED_CUSTOMER_PASSWORD="})
+@ActiveProfiles({"test", "dev"})
+@Transactional
 class CatalogSeederTest {
 
     @Autowired
@@ -27,20 +30,14 @@ class CatalogSeederTest {
     private WarehouseRepository warehouses;
 
     @Autowired
-    private InventoryService inventoryService;
-
-    @Autowired
-    private Clock clock;
-
-    @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
     private CatalogSeeder seeder;
 
     @BeforeEach
     void seed() {
-        seeder = new CatalogSeeder(products, categories, warehouses, inventoryService, clock);
-        seeder.run(null);
+        seeder.seed();
     }
 
     private Integer stock(String sku, String warehouse) {
@@ -101,9 +98,14 @@ class CatalogSeederTest {
     }
 
     @Test
+    void createsNoHistoryWithoutACustomerPassword() {
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM orders", Long.class)).isZero();
+    }
+
+    @Test
     void doesNothingOnASecondRun() {
         long before = products.count();
-        seeder.run(null);
+        seeder.seed();
         assertThat(products.count()).isEqualTo(before);
         assertThat(warehouses.count()).isEqualTo(3);
     }

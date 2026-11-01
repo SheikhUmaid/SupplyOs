@@ -2,6 +2,7 @@ package com.supplychain.seed;
 
 import com.supplychain.category.Category;
 import com.supplychain.category.CategoryRepository;
+import com.supplychain.config.AdjustableClock;
 import com.supplychain.inventory.InventoryDtos.InventoryCreateRequest;
 import com.supplychain.inventory.InventoryService;
 import com.supplychain.product.Product;
@@ -11,7 +12,6 @@ import com.supplychain.warehouse.Warehouse;
 import com.supplychain.warehouse.WarehouseRepository;
 import com.supplychain.warehouse.WarehouseStatus;
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -19,18 +19,22 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Demonstration warehouses, categories, products and stock, for an empty development database. Stock
- * goes through InventoryService so that it appears in the ledger like any other stock.
+ * goes through InventoryService so that it appears in the ledger like any other stock. When history
+ * is configured, the catalogue is dated before it, and all of it commits together or not at all.
  */
 @Component
 @Profile("dev")
+@Order(2)
 public class CatalogSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CatalogSeeder.class);
@@ -91,27 +95,58 @@ public class CatalogSeeder implements ApplicationRunner {
     private final CategoryRepository categories;
     private final WarehouseRepository warehouses;
     private final InventoryService inventoryService;
-    private final Clock clock;
+    private final DemoHistorySeeder history;
+    private final TransactionTemplate transaction;
+    private final AdjustableClock clock;
+    private final boolean enabled;
 
     public CatalogSeeder(
             ProductRepository products,
             CategoryRepository categories,
             WarehouseRepository warehouses,
             InventoryService inventoryService,
-            Clock clock) {
+            DemoHistorySeeder history,
+            TransactionTemplate transaction,
+            AdjustableClock clock,
+            @Value("${app.seed.enabled:true}") boolean enabled) {
         this.products = products;
         this.categories = categories;
         this.warehouses = warehouses;
         this.inventoryService = inventoryService;
+        this.history = history;
+        this.transaction = transaction;
         this.clock = clock;
+        this.enabled = enabled;
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
+        if (enabled) {
+            seed();
+        }
+    }
+
+    public void seed() {
         if (products.count() > 0 || warehouses.count() > 0) {
             return;
         }
+        boolean withHistory = history.isConfigured();
+        try {
+            transaction.executeWithoutResult(status -> {
+                if (withHistory) {
+                    clock.travelTo(history.start());
+                }
+                createCatalogue();
+                if (withHistory) {
+                    history.seed();
+                }
+            });
+        } finally {
+            clock.resume();
+        }
+    }
+
+    private void createCatalogue() {
         Instant now = clock.instant();
         List<Warehouse> savedWarehouses = WAREHOUSES.stream()
                 .map(seed -> warehouses.save(new Warehouse(

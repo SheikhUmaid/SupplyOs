@@ -10,20 +10,24 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Tabs } from "@/components/ui/Tabs";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { ApiError } from "@/services/api/client";
+import { dispatchService } from "@/services/dispatch/dispatch";
 import { inventoryService } from "@/services/inventory/inventory";
+import { orderService } from "@/services/orders/orders";
 import { warehouseService } from "@/services/warehouses/warehouses";
 import { useUiStore } from "@/stores/ui/uiStore";
 import type { Warehouse, WarehouseRequest } from "@/types/api";
 import { formatCount, formatInr } from "@/utils/format";
-import { RECORD_STATUS } from "@/utils/status";
+import { ORDER_STATUS, RECORD_STATUS, SHIPMENT_STATUS } from "@/utils/status";
 import { WarehouseForm } from "./WarehouseForm";
 import { toWarehouseFormValues, toWarehouseRequest } from "./warehouseForm";
 
-type Tab = "overview" | "inventory" | "edit";
+type Tab = "overview" | "inventory" | "orders" | "dispatches" | "edit";
 
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "inventory", label: "Inventory" },
+  { id: "orders", label: "Orders" },
+  { id: "dispatches", label: "Dispatches" },
   { id: "edit", label: "Edit" },
 ] as const;
 
@@ -133,6 +137,65 @@ function WarehouseStock({ warehouseId }: { warehouseId: number }) {
   );
 }
 
+function WarehouseOrders({ warehouseId }: { warehouseId: number }) {
+  const orders = useApiQuery(
+    (signal) => orderService.list({ warehouseId, size: 50 }, signal),
+    [warehouseId],
+  );
+  return (
+    <DataTable
+      caption="Orders allocated to this warehouse"
+      rows={orders.data?.content ?? []}
+      rowKey={(order) => order.id}
+      loading={orders.loading && !orders.data}
+      error={orders.error}
+      onRetry={orders.reload}
+      emptyTitle="No orders allocated yet"
+      columns={[
+        { key: "orderNumber", header: "Order", cell: (order) => order.orderNumber },
+        {
+          key: "amount",
+          header: "Amount",
+          align: "right",
+          cell: (order) => formatInr(order.totalAmount),
+        },
+        {
+          key: "status",
+          header: "Status",
+          cell: (order) => <StatusBadge status={ORDER_STATUS[order.status]} />,
+        },
+      ]}
+    />
+  );
+}
+
+function WarehouseDispatches({ warehouseId }: { warehouseId: number }) {
+  const dispatches = useApiQuery(
+    (signal) => dispatchService.list({ warehouseId, size: 50 }, signal),
+    [warehouseId],
+  );
+  return (
+    <DataTable
+      caption="This warehouse's dispatch history"
+      rows={dispatches.data?.content ?? []}
+      rowKey={(dispatch) => dispatch.id}
+      loading={dispatches.loading && !dispatches.data}
+      error={dispatches.error}
+      onRetry={dispatches.reload}
+      emptyTitle="No dispatches yet"
+      columns={[
+        { key: "reference", header: "Dispatch ID", cell: (dispatch) => dispatch.trackingReference },
+        { key: "city", header: "Destination", cell: (dispatch) => dispatch.deliveryCity },
+        {
+          key: "status",
+          header: "Status",
+          cell: (dispatch) => <StatusBadge status={SHIPMENT_STATUS[dispatch.status]} />,
+        },
+      ]}
+    />
+  );
+}
+
 export function WarehouseDrawer({
   warehouse,
   onChanged,
@@ -189,6 +252,8 @@ export function WarehouseDrawer({
           <Tabs label="Warehouse details" tabs={TABS} active={tab} onChange={setTab} />
           {tab === "overview" && <Overview warehouseId={warehouse.id} />}
           {tab === "inventory" && <WarehouseStock warehouseId={warehouse.id} />}
+          {tab === "orders" && <WarehouseOrders warehouseId={warehouse.id} />}
+          {tab === "dispatches" && <WarehouseDispatches warehouseId={warehouse.id} />}
           {tab === "edit" && (
             <WarehouseForm
               key={warehouse.id}

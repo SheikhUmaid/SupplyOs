@@ -233,6 +233,71 @@ export interface paths {
         patch: operations["cancel"];
         trace?: never;
     };
+    "/api/dispatches/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Move a shipment one step forward. Any other change is refused with a 409. */
+        patch: operations["updateStatus"];
+        trace?: never;
+    };
+    "/api/visualization/network": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["network"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tracking/order/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["forOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tracking/dispatch/{dispatchId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["forDispatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings/allocation": {
         parameters: {
             query?: never;
@@ -345,6 +410,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dispatches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_5"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dispatches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -361,6 +458,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analytics/warehouses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["warehouses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["orders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/dispatches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["dispatches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["alerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/allocations": {
         parameters: {
             query?: never;
@@ -368,7 +561,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -384,7 +577,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["forOrder"];
+        get: operations["forOrder_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -622,6 +815,35 @@ export interface components {
             email: string;
             password: string;
         };
+        DispatchStatusRequest: {
+            /** @enum {string} */
+            status: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+            note?: string;
+        };
+        DispatchResponse: {
+            /** Format: int64 */
+            id: number;
+            trackingReference: string;
+            /** Format: int64 */
+            orderId: number;
+            orderNumber: string;
+            customerName: string;
+            deliveryCity: string;
+            /** Format: int64 */
+            warehouseId: number;
+            warehouseName: string;
+            /** @enum {string} */
+            status: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+            allowedNextStatuses: ("PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED")[];
+            /** Format: date-time */
+            dispatchDate: string | null;
+            /** Format: date */
+            estimatedDeliveryDate: string;
+            /** Format: date-time */
+            deliveryDate: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         PageResponseWarehouseResponse: {
             content: components["schemas"]["WarehouseResponse"][];
             /** Format: int32 */
@@ -646,6 +868,86 @@ export interface components {
             completedDispatches: number;
             /** Format: double */
             fulfilmentRate: number | null;
+        };
+        NetworkResponse: {
+            warehouses: components["schemas"]["NetworkWarehouseResponse"][];
+            shipments: components["schemas"]["NetworkShipmentResponse"][];
+        };
+        NetworkShipmentResponse: {
+            /** Format: int64 */
+            dispatchId: number;
+            trackingReference: string;
+            /** Format: int64 */
+            orderId: number;
+            orderNumber: string;
+            /** Format: int64 */
+            warehouseId: number;
+            warehouseName: string;
+            destinationCity: string;
+            latitude: number;
+            longitude: number;
+            /** @enum {string} */
+            status: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+            /** Format: date */
+            estimatedDeliveryDate: string;
+        };
+        NetworkWarehouseResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            city: string;
+            state: string;
+            latitude: number;
+            longitude: number;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: int64 */
+            productCount: number;
+            /** Format: int64 */
+            inStockProducts: number;
+            /** Format: int64 */
+            totalAvailable: number;
+            /** Format: int64 */
+            totalReserved: number;
+            /** Format: int64 */
+            lowStockItems: number;
+            /** Format: int64 */
+            activeOrders: number;
+            /** Format: int64 */
+            activeDispatches: number;
+        };
+        HistoryEntryResponse: {
+            /** @enum {string|null} */
+            fromStatus: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED" | null;
+            /** @enum {string} */
+            toStatus: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+            /** Format: date-time */
+            at: string;
+            updatedBy: string | null;
+            note: string | null;
+        };
+        TimelineStepResponse: {
+            key: string;
+            label: string;
+            /** Format: date-time */
+            completedAt: string | null;
+        };
+        TrackingResponse: {
+            /** Format: int64 */
+            orderId: number;
+            orderNumber: string;
+            /** @enum {string} */
+            orderStatus: "PENDING" | "CONFIRMED" | "PROCESSING" | "DISPATCHED" | "DELIVERED" | "CANCELLED";
+            /** @enum {string|null} */
+            shipmentStatus: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED" | null;
+            trackingReference: string | null;
+            warehouseName: string | null;
+            /** Format: date */
+            estimatedDeliveryDate: string | null;
+            /** Format: date-time */
+            deliveryDate: string | null;
+            steps: components["schemas"]["TimelineStepResponse"][];
+            history: components["schemas"]["HistoryEntryResponse"][];
         };
         AllocationSettingsResponse: {
             weights: components["schemas"]["WeightsResponse"];
@@ -751,6 +1053,173 @@ export interface components {
             /** Format: int32 */
             totalPages: number;
         };
+        PageResponseDispatchResponse: {
+            content: components["schemas"]["DispatchResponse"][];
+            /** Format: int32 */
+            number: number;
+            /** Format: int32 */
+            size: number;
+            /** Format: int64 */
+            totalElements: number;
+            /** Format: int32 */
+            totalPages: number;
+        };
+        WarehouseAnalyticsResponse: {
+            /** Format: int32 */
+            days: number;
+            warehouses: components["schemas"]["WarehouseComparisonResponse"][];
+        };
+        WarehouseComparisonResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            active: boolean;
+            /** Format: int64 */
+            availableUnits: number;
+            /** Format: int64 */
+            reservedUnits: number;
+            /** Format: int64 */
+            allocatedOrders: number;
+            /** Format: int64 */
+            completedDispatches: number;
+            /** Format: double */
+            fulfilmentRate: number | null;
+        };
+        DailyCountResponse: {
+            /** Format: date */
+            date: string;
+            /** Format: int64 */
+            count: number;
+        };
+        LabelledCountResponse: {
+            key: string;
+            /** Format: int64 */
+            count: number;
+        };
+        OrderAnalyticsResponse: {
+            /** Format: int32 */
+            days: number;
+            /** Format: int64 */
+            totalOrders: number;
+            averageOrderValue: number;
+            totalValue: number;
+            /**
+             * Format: double
+             * @description Share of orders that found a warehouse.
+             */
+            allocationRate: number | null;
+            /**
+             * Format: double
+             * @description Share of orders that were cancelled.
+             */
+            cancellationRate: number | null;
+            /**
+             * Format: double
+             * @description Average hours from placed to delivered.
+             */
+            averageDeliveryHours: number | null;
+            ordersByStatus: components["schemas"]["LabelledCountResponse"][];
+            ordersOverTime: components["schemas"]["DailyCountResponse"][];
+            topProducts: components["schemas"]["TopProductResponse"][];
+        };
+        TopProductResponse: {
+            /** Format: int64 */
+            productId: number;
+            name: string;
+            sku: string;
+            /** Format: int64 */
+            units: number;
+            revenue: number;
+        };
+        InventoryAnalyticsResponse: {
+            /** Format: int32 */
+            days: number;
+            /** Format: int64 */
+            totalAvailable: number;
+            /** Format: int64 */
+            totalReserved: number;
+            /** Format: int64 */
+            lowStockItems: number;
+            lowStockProducts: components["schemas"]["InventoryResponse"][];
+            warehouses: components["schemas"]["WarehouseNameResponse"][];
+            productAvailability: components["schemas"]["ProductAvailabilityResponse"][];
+            stockMovement: components["schemas"]["StockMovementDayResponse"][];
+        };
+        ProductAvailabilityResponse: {
+            /** Format: int64 */
+            productId: number;
+            name: string;
+            /** Format: int64 */
+            totalAvailable: number;
+            byWarehouse: components["schemas"]["ProductStockResponse"][];
+        };
+        ProductStockResponse: {
+            /** Format: int64 */
+            warehouseId: number;
+            /** Format: int64 */
+            available: number;
+        };
+        StockMovementDayResponse: {
+            /** Format: date */
+            date: string;
+            /** Format: int64 */
+            received: number;
+            /** Format: int64 */
+            shipped: number;
+        };
+        WarehouseNameResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+        };
+        DispatchAnalyticsResponse: {
+            /** Format: int32 */
+            days: number;
+            /** Format: int64 */
+            activeDispatches: number;
+            /** Format: int64 */
+            completedDeliveries: number;
+            /** Format: int64 */
+            pendingShipments: number;
+            /**
+             * Format: double
+             * @description Share of deliveries on or before the estimate.
+             */
+            onTimeRate: number | null;
+            statusDistribution: components["schemas"]["LabelledCountResponse"][];
+        };
+        DashboardResponse: {
+            kpis: components["schemas"]["KpiResponse"];
+            orderActivity: components["schemas"]["DailyCountResponse"][];
+            warehousePerformance: components["schemas"]["WarehouseComparisonResponse"][];
+            recentOrders: components["schemas"]["PageResponseOrderSummaryResponse"];
+            inventoryAlerts: components["schemas"]["PageResponseInventoryResponse"];
+            recentDispatches: components["schemas"]["PageResponseDispatchResponse"];
+        };
+        KpiResponse: {
+            /** Format: int64 */
+            totalOrders: number;
+            /** Format: int64 */
+            pendingOrders: number;
+            /** Format: int64 */
+            totalProducts: number;
+            /** Format: int64 */
+            totalWarehouses: number;
+            /** Format: int64 */
+            totalInventory: number;
+            /** Format: int64 */
+            activeDispatches: number;
+            /** Format: int64 */
+            deliveredOrders: number;
+            /** Format: int64 */
+            lowStockItems: number;
+        };
+        AlertsResponse: {
+            /** Format: int64 */
+            pendingOrders: number;
+            /** Format: int64 */
+            lowStockItems: number;
+        };
         AllocationSummaryResponse: {
             /** Format: int64 */
             id: number;
@@ -791,6 +1260,9 @@ export interface components {
             explanation: string;
             /** Format: date-time */
             allocatedAt: string;
+            deliveryCity: string;
+            deliveryLatitude: number;
+            deliveryLongitude: number;
             evaluations: components["schemas"]["EvaluationResponse"][];
         };
         EvaluationResponse: {
@@ -1368,6 +1840,96 @@ export interface operations {
             };
         };
     };
+    updateStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DispatchStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DispatchResponse"];
+                };
+            };
+        };
+    };
+    network: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NetworkResponse"];
+                };
+            };
+        };
+    };
+    forOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrackingResponse"];
+                };
+            };
+        };
+    };
+    forDispatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispatchId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrackingResponse"];
+                };
+            };
+        };
+    };
     settings: {
         parameters: {
             query?: never;
@@ -1532,6 +2094,55 @@ export interface operations {
             };
         };
     };
+    list_5: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "PACKED" | "DISPATCHED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+                warehouseId?: number;
+                q?: string;
+                page?: number;
+                size?: number;
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseDispatchResponse"];
+                };
+            };
+        };
+    };
+    get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DispatchResponse"];
+                };
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -1552,7 +2163,135 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    warehouses: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WarehouseAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    orders: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OrderAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    inventory: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InventoryAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    dispatches: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DispatchAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DashboardResponse"];
+                };
+            };
+        };
+    };
+    alerts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertsResponse"];
+                };
+            };
+        };
+    };
+    list_6: {
         parameters: {
             query?: {
                 outcome?: "ALLOCATED" | "NO_ELIGIBLE_WAREHOUSE";
@@ -1577,7 +2316,7 @@ export interface operations {
             };
         };
     };
-    forOrder: {
+    forOrder_1: {
         parameters: {
             query?: never;
             header?: never;

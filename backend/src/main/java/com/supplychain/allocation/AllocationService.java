@@ -15,6 +15,7 @@ import com.supplychain.allocation.engine.WarehouseScoringEngine.Request;
 import com.supplychain.allocation.engine.WarehouseScoringEngine.Weights;
 import com.supplychain.common.PageParams;
 import com.supplychain.common.PageResponse;
+import com.supplychain.dispatch.DispatchService;
 import com.supplychain.exception.ApiException;
 import com.supplychain.inventory.Inventory;
 import com.supplychain.inventory.InventoryService;
@@ -26,6 +27,7 @@ import com.supplychain.order.PaymentStatus;
 import com.supplychain.warehouse.Warehouse;
 import com.supplychain.warehouse.WarehouseRepository;
 import com.supplychain.warehouse.WarehouseStatus;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
@@ -50,6 +52,7 @@ public class AllocationService {
     private final AllocationEvaluationRepository evaluations;
     private final WarehouseRepository warehouses;
     private final InventoryService inventoryService;
+    private final DispatchService dispatchService;
     private final Clock clock;
 
     public AllocationService(
@@ -58,6 +61,7 @@ public class AllocationService {
             AllocationEvaluationRepository evaluations,
             WarehouseRepository warehouses,
             InventoryService inventoryService,
+            DispatchService dispatchService,
             Clock clock) {
         this.properties = properties;
         this.engine = new WarehouseScoringEngine(
@@ -66,6 +70,7 @@ public class AllocationService {
         this.evaluations = evaluations;
         this.warehouses = warehouses;
         this.inventoryService = inventoryService;
+        this.dispatchService = dispatchService;
         this.clock = clock;
     }
 
@@ -105,6 +110,8 @@ public class AllocationService {
             order.setStatus(OrderStatus.CONFIRMED);
             order.setPaymentStatus(PaymentStatus.PAID_SIMULATED);
             order.setConfirmedAt(now);
+            BigDecimal etaHours = decision.evaluations().getFirst().etaHours();
+            dispatchService.createFor(order, selected, etaHours, now);
         }
         return allocation;
     }
@@ -203,6 +210,9 @@ public class AllocationService {
                         allocation.getWeightPriority()),
                 allocation.getExplanation(),
                 allocation.getAllocatedAt(),
+                allocation.getOrder().getDeliveryCity(),
+                allocation.getOrder().getDeliveryLatitude(),
+                allocation.getOrder().getDeliveryLongitude(),
                 evaluationsOf(allocation));
     }
 

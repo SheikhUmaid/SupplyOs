@@ -3,6 +3,8 @@
 # It doesn't touch any MySQL already installed on the machine. Passwords come from backend/.env.
 #
 #   ./local-db.sh start | stop | status
+#   ./local-db.sh reset    Back up, then empty, the application database. The next backend start
+#                          creates the schema and demonstration data again.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -63,8 +65,22 @@ SQL
   status)
     is_running && echo "Running on port $PORT." || echo "Not running."
     ;;
+  reset)
+    is_running || { echo "MySQL isn't running. Run: $0 start" >&2; exit 1; }
+    if ss -ltn | grep -q ":${SERVER_PORT:-8081}\b"; then
+      echo "The backend is running on port ${SERVER_PORT:-8081}. Stop it first." >&2
+      exit 1
+    fi
+    export MYSQL_PWD="$(setting DB_PASSWORD)"
+    mkdir -p "$DATA_ROOT/backups"
+    backup="$DATA_ROOT/backups/supplychain-$(date +%Y%m%d-%H%M%S).sql"
+    mysqldump --no-defaults -u root -h 127.0.0.1 -P "$PORT" --single-transaction supplychain > "$backup"
+    mysql --no-defaults -u root -h 127.0.0.1 -P "$PORT" \
+      -e "DROP DATABASE supplychain; CREATE DATABASE supplychain CHARACTER SET utf8mb4;"
+    echo "Emptied the supplychain database. Backup: $backup"
+    ;;
   *)
-    echo "Usage: $0 start|stop|status" >&2
+    echo "Usage: $0 start|stop|status|reset" >&2
     exit 2
     ;;
 esac

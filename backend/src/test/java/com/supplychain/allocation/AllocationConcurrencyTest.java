@@ -7,6 +7,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 
 import com.supplychain.TestCatalog;
+import com.supplychain.dispatch.DispatchDtos.DispatchStatusRequest;
+import com.supplychain.dispatch.DispatchService;
+import com.supplychain.dispatch.ShipmentStatus;
+import com.supplychain.exception.ApiException;
 import com.supplychain.inventory.Inventory;
 import com.supplychain.inventory.InventoryDtos.InventoryUpdateRequest;
 import com.supplychain.inventory.InventoryDtos.StockChangeType;
@@ -21,6 +25,7 @@ import com.supplychain.order.OrderPriority;
 import com.supplychain.order.OrderService;
 import com.supplychain.order.OrderStatus;
 import com.supplychain.product.Product;
+import com.supplychain.security.AuthenticatedUser;
 import com.supplychain.user.User;
 import com.supplychain.user.UserRepository;
 import com.supplychain.user.UserRole;
@@ -70,6 +75,9 @@ class AllocationConcurrencyTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private DispatchService dispatchService;
 
     @MockitoSpyBean
     private InventoryTransactionRepository ledger;
@@ -224,8 +232,7 @@ class AllocationConcurrencyTest {
         Product phone = catalog.product("Phone");
         Inventory stock = catalog.stock(phone, catalog.warehouse("Only"), 10, 0, 0);
         long id = place(new OrderItemRequest(phone.getId(), 7)).id();
-        com.supplychain.security.AuthenticatedUser owner =
-                new com.supplychain.security.AuthenticatedUser(customer.getId(), UserRole.CUSTOMER);
+        AuthenticatedUser owner = new AuthenticatedUser(customer.getId(), UserRole.CUSTOMER);
 
         List<Callable<Boolean>> tasks = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
@@ -233,7 +240,7 @@ class AllocationConcurrencyTest {
                 try {
                     orderService.cancel(id, owner);
                     return true;
-                } catch (com.supplychain.exception.ApiException refused) {
+                } catch (ApiException refused) {
                     return false;
                 }
             });
@@ -270,6 +277,83 @@ class AllocationConcurrencyTest {
         assertThat(50 + deltas).isEqualTo(current.getAvailableQuantity());
     }
 
+    private long dispatchIdOf(long orderId) {
+        return jdbc.queryForObject("SELECT id FROM dispatches WHERE order_id = ?", Long.class, orderId);
+    }
+
+    private boolean tryAdvance(long dispatchId, ShipmentStatus status, long actorId) {
+        try {
+            dispatchService.updateStatus(dispatchId, new DispatchStatusRequest(status, null), actorId);
+            return true;
+        } catch (ApiException refused) {
+            return false;
+        }
+    }
+
+    private boolean tryCancel(long orderId) {
+        try {
+            orderService.cancel(orderId, new AuthenticatedUser(customer.getId(), UserRole.CUSTOMER));
+            return true;
+        } catch (ApiException refused) {
+            return false;
+        }
+    }
+
+    @Test
+    void simultaneousIdenticalStatusUpdatesApplyOnce() throws Exception {
+        Product phone = catalog.product("Phone");
+        Inventory stock = catalog.stock(phone, catalog.warehouse("Only"), 10, 0, 0);
+        long orderId = place(new OrderItemRequest(phone.getId(), 4)).id();
+        long dispatchId = dispatchIdOf(orderId);
+        tryAdvance(dispatchId, ShipmentStatus.PACKED, customer.getId());
+
+        List<Callable<Boolean>> tasks = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            tasks.add(() -> tryAdvance(dispatchId, ShipmentStatus.DISPATCHED, customer.getId()));
+        }
+        List<Boolean> results = runTogether(tasks);
+
+        assertThat(results.stream().filter(succeeded -> succeeded)).hasSize(1);
+        assertThat(reload(stock).getReservedQuantity()).isZero();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM inventory_transactions WHERE order_id = ? AND type = 'SHIP'",
+                        Long.class, orderId))
+                .as("stock is shipped once")
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM delivery_tracking WHERE dispatch_id = ? AND to_status = 'DISPATCHED'",
+                        Long.class, dispatchId))
+                .isEqualTo(1);
+    }
+
+    /** Whichever wins, the books must agree with it: released or shipped, never both. */
+    @Test
+    void cancellingWhileDispatchingLeavesOneConsistentOutcome() throws Exception {
+        Product phone = catalog.product("Phone");
+        Inventory stock = catalog.stock(phone, catalog.warehouse("Only"), 100, 0, 0);
+
+        for (int round = 0; round < 10; round++) {
+            long orderId = place(new OrderItemRequest(phone.getId(), 1)).id();
+            long dispatchId = dispatchIdOf(orderId);
+            tryAdvance(dispatchId, ShipmentStatus.PACKED, customer.getId());
+
+            List<Boolean> results = runTogether(List.of(
+                    () -> tryCancel(orderId),
+                    () -> tryAdvance(dispatchId, ShipmentStatus.DISPATCHED, customer.getId())));
+            boolean cancelled = results.get(0);
+            boolean dispatched = results.get(1);
+
+            assertThat(cancelled ^ dispatched).as("exactly one wins").isTrue();
+            String status = jdbc.queryForObject("SELECT status FROM dispatches WHERE id = ?", String.class, dispatchId);
+            assertThat(status).isEqualTo(cancelled ? "CANCELLED" : "DISPATCHED");
+            assertThat(jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM inventory_transactions WHERE order_id = ? AND type = ?",
+                            Long.class, orderId, cancelled ? "SHIP" : "RELEASE"))
+                    .isZero();
+        }
+        assertThat(reload(stock).getReservedQuantity()).isZero();
+    }
+
     /** A failure at any point must undo everything, leaving no order, decision or stock change behind. */
     @Test
     void aFailureDuringReservationRollsBackTheWholeOrder() {
@@ -285,7 +369,7 @@ class AllocationConcurrencyTest {
         assertThat(reload(stock).getAvailableQuantity()).isEqualTo(10);
         assertThat(reload(stock).getReservedQuantity()).isZero();
         for (String table : List.of("orders", "order_items", "warehouse_allocations", "allocation_evaluations",
-                "inventory_transactions")) {
+                "inventory_transactions", "dispatches", "delivery_tracking")) {
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM " + table, Long.class)).as(table).isZero();
         }
     }

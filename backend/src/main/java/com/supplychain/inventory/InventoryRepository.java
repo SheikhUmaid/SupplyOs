@@ -1,5 +1,6 @@
 package com.supplychain.inventory;
 
+import com.supplychain.common.WarehouseCount;
 import jakarta.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +60,13 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             @Param("warehouseId") Long warehouseId,
             @Param("lowStockOnly") boolean lowStockOnly,
             Pageable pageable);
+
+    @Query("""
+            SELECT new com.supplychain.common.WarehouseCount(i.warehouse.id, COUNT(i))
+            FROM Inventory i
+            WHERE i.availableQuantity > 0
+            GROUP BY i.warehouse.id""")
+    List<WarehouseCount> countInStockProducts();
 
     /** Inactive warehouses can't fulfil orders, so their stock doesn't count towards availability. */
     @Query("""

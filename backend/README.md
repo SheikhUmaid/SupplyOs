@@ -8,7 +8,7 @@ Requires MySQL 8 and a JDK whose `javac` is on `PATH` (21 or newer). Maven downl
 
 ### Without root access to MySQL
 
-`./local-db.sh start` runs a private MySQL on port 3307, creating its databases and user on first use. It needs no sudo and doesn't touch any other MySQL on the machine. Set `DB_PASSWORD`, `DB_URL` and `DB_TEST_URL` in `.env` first (see `.env.example`). Also available: `stop` and `status`.
+`./local-db.sh start` runs a private MySQL on port 3307, creating its databases and user on first use. It needs no sudo and doesn't touch any other MySQL on the machine. Set `DB_PASSWORD`, `DB_URL` and `DB_TEST_URL` in `.env` first (see `.env.example`). Also available: `stop`, `status`, and `reset`, which backs up and empties the application database so that the next backend start seeds it again.
 
 ### With an installed MySQL
 
@@ -30,5 +30,7 @@ Copy `.env.example` to `.env` and fill it in. `.env` is ignored by git. The appl
 |---|---|
 | `./mvnw spring-boot:run` | Start on port 8081. Flyway creates the schema on first start. |
 | `./mvnw test` | Run all tests against the `supplychain_test` database |
+
+On an empty database in the `dev` profile, startup creates the catalogue, plus `SEED_ADMIN_EMAIL` as administrator. With `SEED_CUSTOMER_PASSWORD` set, it also creates 10 customers and two months of order history, placed through the real services. See the [main README](../README.md).
 
 API documentation is at <http://localhost:8081/swagger-ui.html> in the default `dev` profile, and is switched off in other profiles.

@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import type { SortState } from "@/components/ui/DataTable";
-import type { InventoryTransactionType, OrderStatus, RecordStatus } from "@/types/api";
+import type {
+  InventoryTransactionType,
+  OrderStatus,
+  RecordStatus,
+  ShipmentStatus,
+} from "@/types/api";
 
 interface ListFilters {
   q: string;
@@ -13,6 +18,7 @@ export interface FilterSections {
   warehouses: ListFilters & { status: RecordStatus | "" };
   inventory: ListFilters & { warehouseId: number | ""; lowStockOnly: boolean };
   orders: ListFilters & { status: OrderStatus | ""; warehouseId: number | "" };
+  dispatches: ListFilters & { status: ShipmentStatus | ""; warehouseId: number | "" };
   movements: ListFilters & {
     warehouseId: number | "";
     type: InventoryTransactionType | "";
@@ -28,6 +34,7 @@ export const FILTER_DEFAULTS: FilterSections = {
   warehouses: { ...LIST_DEFAULTS, status: "" },
   inventory: { ...LIST_DEFAULTS, warehouseId: "", lowStockOnly: false },
   orders: { ...LIST_DEFAULTS, status: "", warehouseId: "" },
+  dispatches: { ...LIST_DEFAULTS, status: "", warehouseId: "" },
   movements: { ...LIST_DEFAULTS, warehouseId: "", type: "", inventoryId: "", inventoryLabel: "" },
 };
 

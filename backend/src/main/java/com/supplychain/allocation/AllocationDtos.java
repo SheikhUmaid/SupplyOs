@@ -55,6 +55,9 @@ public final class AllocationDtos {
             WeightsResponse weights,
             String explanation,
             Instant allocatedAt,
+            String deliveryCity,
+            BigDecimal deliveryLatitude,
+            BigDecimal deliveryLongitude,
             List<EvaluationResponse> evaluations) {}
 
     public record AllocationSummaryResponse(

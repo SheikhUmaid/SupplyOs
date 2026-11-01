@@ -4,17 +4,25 @@ import { ArrowLeft, RefreshCw, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { AdvanceShipmentButton } from "@/components/dispatch/AdvanceShipmentButton";
+import { ShipmentDetails } from "@/components/dispatch/ShipmentDetails";
+import { ShipmentHistory } from "@/components/dispatch/ShipmentHistory";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState, ErrorState, Panel, Skeleton } from "@/components/ui/Feedback";
 import { useApiQuery } from "@/hooks/useApiQuery";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { ApiError } from "@/services/api/client";
+import { dispatchService, trackingService } from "@/services/dispatch/dispatch";
 import { allocationService, orderService } from "@/services/orders/orders";
 import { useUiStore } from "@/stores/ui/uiStore";
 import { formatDateTime, formatInr } from "@/utils/format";
 import { ORDER_STATUS, PAYMENT_STATUS } from "@/utils/status";
+import { AllocationReplay } from "@/components/visualization/AllocationReplay";
 import { AllocationDecision } from "./AllocationDecision";
+
+const REFRESH_MS = 15000;
 
 function orNull<T>(request: Promise<T>): Promise<T | null> {
   return request.catch((error: unknown) => {
@@ -28,13 +36,23 @@ export function OrderAdminDetail() {
   const pushToast = useUiStore((state) => state.pushToast);
   const order = useApiQuery((signal) => orNull(orderService.get(id, signal)), [id]);
   const allocation = useApiQuery((signal) => orNull(allocationService.forOrder(id, signal)), [id]);
+  const tracking = useApiQuery((signal) => trackingService.forOrder(id, signal), [id]);
+  const dispatches = useApiQuery(
+    (signal) => dispatchService.list({ q: order.data?.orderNumber, size: 1 }, signal),
+    [order.data?.orderNumber, tracking.data?.shipmentStatus],
+  );
+  const dispatch = dispatches.data?.content.find((candidate) => candidate.orderId === id);
   const [rerunning, setRerunning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   function refresh() {
     order.reload();
     allocation.reload();
+    tracking.reload();
+    dispatches.reload();
   }
+
+  useAutoRefresh(refresh, REFRESH_MS);
 
   async function rerun() {
     setRerunning(true);
@@ -143,7 +161,30 @@ export function OrderAdminDetail() {
           <EmptyState title="This order has no allocation decision" />
         </Panel>
       ) : (
-        <AllocationDecision allocation={allocation.data} />
+        <>
+          <AllocationDecision allocation={allocation.data} />
+          <AllocationReplay allocation={allocation.data} />
+        </>
+      )}
+
+      {tracking.data?.shipmentStatus && (
+        <Panel
+          title="Shipment"
+          actions={
+            dispatch && (
+              <AdvanceShipmentButton
+                dispatchId={dispatch.id}
+                allowedNextStatuses={dispatch.allowedNextStatuses}
+                onAdvanced={refresh}
+              />
+            )
+          }
+        >
+          <div className="grid gap-6 p-4 lg:grid-cols-2">
+            <ShipmentDetails tracking={tracking.data} />
+            <ShipmentHistory history={tracking.data.history} />
+          </div>
+        </Panel>
       )}
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">

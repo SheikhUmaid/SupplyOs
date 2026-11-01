@@ -4,23 +4,29 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { ShipmentDetails } from "@/components/dispatch/ShipmentDetails";
 import { CustomerGuard } from "@/components/layout/AdminGuard";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState, ErrorState, Panel, Skeleton } from "@/components/ui/Feedback";
 import { useApiQuery } from "@/hooks/useApiQuery";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { ApiError } from "@/services/api/client";
+import { trackingService } from "@/services/dispatch/dispatch";
 import { orderService } from "@/services/orders/orders";
 import { useUiStore } from "@/stores/ui/uiStore";
 import { formatDateTime, formatInr } from "@/utils/format";
 import { ORDER_STATUS, PAYMENT_STATUS } from "@/utils/status";
 import { ProductImage } from "./ProductImage";
 
+const REFRESH_MS = 10000;
+
 function Details() {
   const id = Number(useParams<{ id: string }>().id);
   const pushToast = useUiStore((state) => state.pushToast);
   const [cancelling, setCancelling] = useState(false);
+  const tracking = useApiQuery((signal) => trackingService.forOrder(id, signal), [id]);
   const order = useApiQuery(
     async (signal) => {
       try {
@@ -32,6 +38,11 @@ function Details() {
     },
     [id],
   );
+
+  useAutoRefresh(() => {
+    order.reload();
+    tracking.reload();
+  }, REFRESH_MS);
 
   if (order.error) {
     return (
@@ -63,6 +74,7 @@ function Details() {
       await orderService.cancel(id);
       pushToast("success", "Your order has been cancelled.");
       order.reload();
+      tracking.reload();
     } catch (error) {
       pushToast("error", error instanceof ApiError ? error.message : "Something went wrong.");
       throw error;
@@ -148,6 +160,13 @@ function Details() {
               {data.deliveryPhone}
             </address>
           </Panel>
+          {tracking.data && (
+            <Panel title="Tracking">
+              <div className="p-4">
+                <ShipmentDetails tracking={tracking.data} />
+              </div>
+            </Panel>
+          )}
           <Panel title="Fulfilment">
             <dl className="space-y-2 p-4 text-[13px]">
               <div className="flex justify-between gap-2">
